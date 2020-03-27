@@ -1,0 +1,176 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name = "viewport" content = "width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+<title>ATTiny Fuse Utility</title>
+<style>
+    * {
+      font-family: sans-serif;
+    }
+</style>
+</head>
+<body onload="getFuses()">
+<script type="text/javascript">  
+	function writeFuses() {
+		var check = document.getElementsByName("high"); 
+		var fuseHigh = 0;
+		var fuseLow = 0;
+		var bits = 128;		
+		for(var i = 0; i <check.length; i++) {
+			if(check[i].checked)  
+				fuseHigh += bits;
+			bits = bits >>1;
+		}
+		fuseHigh += parseInt(document.getElementById("h2_0").value, 10);
+		
+		check = document.getElementsByName("low"); 
+		bits = 128;		
+		for(var i = 0; i <check.length; i++) {
+			if(check[i].checked)  
+				fuseLow += bits;
+			bits = bits >>1;
+		}
+		fuseLow += parseInt(document.getElementById("l5_4").value, 10);
+		fuseLow += parseInt(document.getElementById("l3_0").value, 10);
+		var writeFusesURL = "./writeFuses?auth=" + document.getElementById("auth").value;
+		writeFusesURL += "&fuseHigh=" + fuseHigh.toString();
+		writeFusesURL += "&fuseLow=" + fuseLow.toString();
+		fetch(writeFusesURL).then(function(response) {
+			response.text().then(function(text) {
+			});
+		});
+	}
+	
+	function getFuses() {
+		fetch("./readFuses").then(function(response) {
+			response.text().then(function(text) {
+				var fuses = text.split(":");
+				var fuseHigh = parseInt(fuses[0],10);
+				var fuseLow = parseInt(fuses[1],10);
+				var check = document.getElementsByName("high"); 
+				var bits = 128;		
+				for(var i = 0; i <check.length; i++) {
+					check[i].checked = ((fuseHigh & bits)>0);  
+					bits = bits >>1;
+				}
+				setSelect("h2_0", (fuseHigh & 7).toString());
+
+				check = document.getElementsByName("low"); 
+				bits = 128;		
+				for(var i = 0; i <check.length; i++) {
+					check[i].checked = ((fuseLow & bits) > 0);  
+					bits = bits >>1;
+				}
+				setSelect("l5_4", (fuseLow & 48).toString());
+				setSelect("l3_0", (fuseLow & 15).toString());
+			});
+		});
+	}
+
+	function readwriteData(dataOp, eeprom) {
+		var opURL = "./dataOp?auth=";
+		opURL +=document.getElementById("auth").value;
+		opURL += "&dataOp=" + dataOp;
+		opURL += "&dataFile=" + document.getElementById("dataFile").value;
+		opURL += "&version=" + document.getElementById("version").value;
+		opURL += "&eeprom=" + eeprom;
+		fetch(opURL).then(function(response) {
+			response.text().then(function(text) {
+			});
+		});
+	}
+	
+	function eraseChip() {
+		fetch("./eraseChip?auth=" + document.getElementById("auth").value).then(function(response) {
+			response.text().then(function(text) {
+			});
+		});
+	}
+	
+	function setSelect(selName, selVal) {
+		var sel = document.getElementById(selName);
+		var opts = sel.options;
+		for (var opt, j = 0; opt = opts[j]; j++) {
+			if (opt.value == selVal) {
+				sel.selectedIndex = j;
+				break;
+			}
+		}
+	}
+</script>
+
+<h1>ATTiny Fuse Utility</h1>
+<select name="version" id="version">
+	<option value = "2">ATTiny85</option>
+	<option value = "1">ATTiny45</option>
+	<option value = "0">ATTiny25</option>
+</select>&nbsp&nbsp CPU Version
+<BR>
+<table>
+	<tr>
+		<th style="width:45%">High Fuse</th><th style="width:45%">Low Fuse</th>
+	</tr>
+	<tr>
+		<td><input type="checkbox" name="high" id="h7"><label for="h7">External reset enabled</label></td>
+		<td><input type="checkbox" name="low" id="l7"><label for="l7">Clock div8 disabled</label></td>
+	</tr>
+	<tr>
+		<td><input type="checkbox" name="high" id="h6"><label for="h6">DebugWIRE disabled</label></td>
+		<td><input type="checkbox" name="low" id="l6"><label for="l6">Clock output disabled</label></td>
+	</tr>
+	<tr>
+		<td><input type="checkbox" name="high" id="h5"><label for="h5">Serial download disabled</label></td>
+		<td><select name="low5_4" id="l5_4">
+				<option value = "0">64mS</option>
+				<option value = "16">16mS</option>
+				<option value = "32">4mS</option>
+				<option value = "48">0mS</option>
+			</select>
+			<label for="l5_4">Start up setting</label>
+		</td>
+	</tr>
+	<tr>
+		<td><input type="checkbox" name="high" id="h4"><label for="h4">Watchdog timer off</label></td>
+	</tr>
+	<tr>
+		<td><input type="checkbox" name="high" id="h3"><label for="h3">EEPROM chip erase off </label></td>
+		<td><select name="low3_0" id="l3_0">
+				<option value = "0">External</option>
+				<option value = "1">HF PLL</option>
+				<option value = "2">8 MHz Int</option>
+				<option value = "3">6.4 MHz Int</option>
+				<option value = "4">128 KHz Int</option>
+				<option value = "6">LF XTAL</option>
+				<option value = "15">HF XTAL</option>
+			</select>
+			<label for="l3_0">Clock source setting</label>
+		</td>
+	</tr>
+	<tr>
+		<td><select name="high2_0" id="h2_0">
+				<option value = "4">4.3V</option>
+				<option value = "5">2.7V</option>
+				<option value = "6">1.8V</option>
+				<option value = "7">Disabled</option>
+			</select>
+			<label for="h2_0">Brownout setting</label>
+		</td>
+	</tr>
+</table>
+<BR>
+<button type="button" onclick="writeFuses()">Write Fuses</button>
+<BR><BR>
+<input type="text" name="dataFile" id="dataFile">&nbsp Data File
+<BR><BR>
+<button type="button" onclick="eraseChip()">Erase Chip</button>
+&nbsp&nbsp&nbsp
+<button type="button" onclick="readwriteData(1, 0)">Write Flash</button>
+&nbsp&nbsp&nbsp
+<button type="button" onclick="readwriteData(1, 1)">Write EEPROM</button>
+<BR><BR>
+<button type="button" onclick="readwriteData(0, 0)">Read Flash</button>
+&nbsp&nbsp&nbsp
+<button type="button" onclick="readwriteData(0, 1)">Read EEPROM</button>
+<BR><BR>
+<input type="text" name="auth" id="auth">&nbspAuthorisation code
+</html>
