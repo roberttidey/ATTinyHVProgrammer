@@ -10,12 +10,17 @@
 </style>
 </head>
 <body onload="getFuses()">
-<script type="text/javascript">  
+<script type="text/javascript"> 
+	function setStatus(status) {
+		document.getElementById("status").value = status;
+	}
+
 	function writeFuses() {
 		var check = document.getElementsByName("high"); 
 		var fuseHigh = 0;
 		var fuseLow = 0;
-		var bits = 128;		
+		var bits = 128;
+		setStatus("working");		
 		for(var i = 0; i <check.length; i++) {
 			if(check[i].checked)  
 				fuseHigh += bits;
@@ -37,6 +42,7 @@
 		writeFusesURL += "&fuseLow=" + fuseLow.toString();
 		fetch(writeFusesURL).then(function(response) {
 			response.text().then(function(text) {
+				setStatus(text);		
 			});
 		});
 	}
@@ -68,6 +74,7 @@
 	}
 
 	function readwriteData(dataOp, eeprom) {
+		setStatus("working");		
 		var opURL = "./dataOp?auth=";
 		opURL +=document.getElementById("auth").value;
 		opURL += "&dataOp=" + dataOp;
@@ -76,13 +83,16 @@
 		opURL += "&eeprom=" + eeprom;
 		fetch(opURL).then(function(response) {
 			response.text().then(function(text) {
+				setStatus(text);
 			});
 		});
 	}
 	
 	function eraseChip() {
+		setStatus("working");		
 		fetch("./eraseChip?auth=" + document.getElementById("auth").value).then(function(response) {
 			response.text().then(function(text) {
+				setStatus(text);
 			});
 		});
 	}
@@ -173,4 +183,6 @@
 <button type="button" onclick="readwriteData(0, 1)">Read EEPROM</button>
 <BR><BR>
 <input type="text" name="auth" id="auth">&nbspAuthorisation code
+<BR><BR>
+<input type="text" name="status" id="status" readonly>
 </html>
