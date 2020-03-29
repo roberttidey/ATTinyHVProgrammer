@@ -27,7 +27,6 @@ byte fuseExt = 254;
 int iPageSize = 64;
 int iPages = 128;
 int iSize = 8192;
-int startAddress;
 byte dataBuffer[MAX_LEN]; 
 int chkSum; 
 
@@ -178,6 +177,15 @@ unsigned int hex2Int(char c1, char c2) {
 	return valL;
 }
 
+//Handle a start address by inserting RJMP instruction at 0
+void insertStartAddress(int address) {
+	int code;
+	// make RJMP instruction
+	code = ((address >>1) - 1) | 0xC000;
+	dataBuffer[0] = code & 0xff;
+	dataBuffer[1] = code >> 8;
+}
+
 int parseHex(String hexFile) {
 	int ret = 0;
 	int i;
@@ -185,6 +193,7 @@ int parseHex(String hexFile) {
 	int dataIndex;
 	int recLength;
 	int recAddress;
+	int startAddress;
 	int chk;
 	int eof = 0;
 	int format;
@@ -245,6 +254,7 @@ int parseHex(String hexFile) {
 			}
 		}
 		f.close();
+		if(startAddress > 0) insertStartAddress(startAddress);
 	} else {
 		Serial.println(String(hexFile) + " not found");
 		ret = ERR_NODATAFILE;
