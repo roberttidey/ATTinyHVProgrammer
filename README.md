@@ -22,6 +22,8 @@ Construction details to be uploaded shortly
 
 ## Install
 Uses BaseSupport library for common functions https://github.com/roberttidey/BaseSupport
+Edit BaseConfig.h for WifiManager and upload passwords
+Uncomment FASTCONNECT in BaseConfig.h as required
 Compile and serial upload in Arduino
 Further updates can be done OTA from an exported binary
 
